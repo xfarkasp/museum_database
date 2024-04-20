@@ -90,7 +90,7 @@ WHERE name = 'The Virgin of the Rocks';
 -- try to add exposition to the same room before previous exposition ended
 -- this wont work, because only 1 exposition can be active in the same zone/room
 INSERT INTO exposition (name, start_date, end_date, current_state)
-VALUES ('Another exposition', NOW(), NOW() + INTERVAL '2 days', 'Active');
+VALUES ('Another exposition', NOW(), NOW() + INTERVAL '2 days', 'Planed');
 
 -- try to assign room to an exposition, which has a start date during an on-going exposition
 UPDATE room
@@ -103,7 +103,12 @@ WHERE name = 'Salle des États';
 
 -- change the exposition start date after the end date of the ongoing exposition
 UPDATE exposition
-SET start_date = NOW() + INTERVAL '100 years 2 days'
+SET start_date = NOW() --+ INTERVAL '100 years 2 days'
+WHERE name = 'Another exposition';
+
+-- change the exposition start date after the end date of the ongoing exposition
+UPDATE exposition
+SET end_date = NOW() + INTERVAL '100 years 3 days'
 WHERE name = 'Another exposition';
 
 -- the room can now be assigned to that room
@@ -148,3 +153,6 @@ LEFT JOIN
     room r ON r.id = e.id_room
 WHERE
     ex.name = 'Mona Lisa Exhibition';
+
+SELECT *
+FROM exposition;
