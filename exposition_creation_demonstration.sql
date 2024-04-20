@@ -1,37 +1,3 @@
--- location
-INSERT INTO location_table (institute, location_institute_name, description, street_address, city,  postal_code, country)
-VALUES ('Museum', 'Musée du Louvre', 'Musée du Louvre je múzeum v Paríži. Zaberá veľkú časť paláca Louvre pozdĺž brehu Seiny. Je najnavštevovanejším a patrí k najslávnejším múzeám na svete.', '1 Avenue du Général Lemonier', 'Paris',  '75001', 'France');
-
--- Insert the room into the room table
-INSERT INTO room (id_museum, name)
-VALUES (
-    (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
-    'Salle des États'
-);
-
--- owner creation
-INSERT INTO owner_table (owner_name, description)
-VALUES ('Musée du Louvre', 'Honosne muzeum v Parizi');
-
--- condition
-INSERT INTO condition_table (current_condition, description)
-VALUES ('Perfect', 'Velmi dobre to je');
-
--- category
-INSERT INTO category_table (category_name, description)
-VALUES ('Leonardo da Vinci Paintings', 'Paintings created by Leo');
-
--- create an exemplar
-INSERT INTO exemplar (id_condition, id_owner, id_category, id_location, name, validation_time)
-VALUES (
-        (SELECT id FROM condition_table WHERE current_condition = 'Perfect' AND description = 'Velmi dobre to je'),
-        (SELECT id FROM owner_table WHERE owner_name = 'Musée du Louvre'),
-        (SELECT id FROM category_table WHERE category_name = 'Leonardo da Vinci Paintings'),
-        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
-        'Mona Lisa',
-        '2 hours'::INTERVAL
-       );
-
 -- create an exhibition
 INSERT INTO exposition (name, start_date, end_date, current_state)
 VALUES ('Mona Lisa Exhibition', NOW(), NOW() + INTERVAL '100 years', 'Active');
@@ -43,7 +9,7 @@ SET id_exposition = (
     FROM exposition
     WHERE name = 'Mona Lisa Exhibition'
 )
-WHERE name = 'Salle des États';
+WHERE name IN ('Salle des États', 'Salle des Caryatides');
 
 -- Update the exemplar entry for "Mona Lisa" to assign it to the exhibition
 UPDATE exemplar
@@ -52,7 +18,102 @@ SET id_exposition = (
     FROM exposition
     WHERE name = 'Mona Lisa Exhibition'
 )
+WHERE name IN ('Mona Lisa', 'Hercules Statue');
+
+UPDATE exemplar
+SET id_room = (
+    SELECT room.id
+    FROM room
+    JOIN exposition ON room.id_exposition = exposition.id
+    WHERE room.name = 'Salle des États'
+    AND exposition.name = 'Mona Lisa Exhibition'
+)
 WHERE name = 'Mona Lisa';
+
+UPDATE exemplar
+SET id_room = (
+    SELECT room.id
+    FROM room
+    JOIN exposition ON room.id_exposition = exposition.id
+    WHERE room.name = 'Salle des Sept-Cheminées'
+    AND exposition.name = 'Mona Lisa Exhibition'
+)
+WHERE name = 'Hercules Statue';
+
+-- Update the exemplar entry for "The Statue of David" to assign it to the exhibition
+-- This wont work, because the statue is not in the Louvre
+UPDATE exemplar
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Mona Lisa Exhibition'
+)
+WHERE name = 'The Statue of David';
+
+-- create an exemplar The Virgin of the Rocks and we put it in to transit to be send to another museum
+-- this wont work, because the exemplar is being sent away
+INSERT INTO exemplar (id_condition, id_owner, id_category, id_location, name, validation_time)
+VALUES (
+        (SELECT id FROM condition_table WHERE current_condition = 'Perfect' AND description = 'The exemplar is in perfect condition.'),
+        (SELECT id FROM owner_table WHERE owner_name = 'Musée du Louvre'),
+        (SELECT id FROM category_table WHERE category_name = 'Paintings'),
+        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
+        'The Virgin of the Rocks',
+        '1 days'::INTERVAL
+       );
+
+-- Insert a transit record and capture its ID
+WITH inserted_row AS (
+    INSERT INTO transit_table (id_location, delivery_timestamp)
+    VALUES (
+        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
+        CURRENT_TIMESTAMP + INTERVAL '2 days'
+    )
+    RETURNING id
+)
+UPDATE exemplar
+SET id_transit = (
+    SELECT id
+    FROM inserted_row
+)
+WHERE name = 'The Virgin of the Rocks';
+
+-- Now we try to assign the the exemplar to the exhibition
+UPDATE exemplar
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Mona Lisa Exhibition'
+)
+WHERE name = 'The Virgin of the Rocks';
+
+-- try to add exposition to the same room before previous exposition ended
+-- this wont work, because only 1 exposition can be active in the same zone/room
+INSERT INTO exposition (name, start_date, end_date, current_state)
+VALUES ('Another exposition', NOW(), NOW() + INTERVAL '2 days', 'Active');
+
+-- try to assign room to an exposition, which has a start date during an on-going exposition
+UPDATE room
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Another exposition'
+)
+WHERE name = 'Salle des États';
+
+-- change the exposition start date after the end date of the ongoing exposition
+UPDATE exposition
+SET start_date = NOW() + INTERVAL '100 years 2 days'
+WHERE name = 'Another exposition';
+
+-- the room can now be assigned to that room
+UPDATE room
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Another exposition'
+)
+WHERE name = 'Salle des États';
 
 SELECT
     e.id AS exemplar_id,
@@ -84,107 +145,6 @@ LEFT JOIN
 LEFT JOIN
     exposition ex ON e.id_exposition = ex.id
 LEFT JOIN
-    room r ON r.id_museum = l.id AND r.id_exposition = ex.id
+    room r ON r.id = e.id_room
 WHERE
     ex.name = 'Mona Lisa Exhibition';
-
-
-INSERT INTO location_table (institute, location_institute_name, description, street_address, city,  postal_code, country)
-VALUES ('Museum', 'Galleria dell Accademia', 'Muzeum kde maju Davida', 'Via Ricasoli, 58/60', 'Firenze',  '50129', 'Italy');
-
--- owner creation
-INSERT INTO owner_table (owner_name, description)
-VALUES ('Galleria dell Accademia', 'Honosne muzeum vo Florencii');
-
--- condition do do, nedovolit 2x dat ten isty condition
--- INSERT INTO condition_table (current_condition, description)
--- VALUES ('Perfect', 'Velmi dobre to je');
-
--- category
-INSERT INTO category_table (category_name, description)
-VALUES ('Michelangelo Buonarroti statues', 'Statues created by Michelangelo Buonarroti');
-
--- create an exemplar
-INSERT INTO exemplar (id_condition, id_owner, id_category, id_location, name, validation_time)
-VALUES (
-        (SELECT id FROM condition_table WHERE current_condition = 'Perfect' AND description = 'Velmi dobre to je'),
-        (SELECT id FROM owner_table WHERE owner_name = 'Galleria dell Accademia'),
-        (SELECT id FROM category_table WHERE category_name = 'Michelangelo Buonarroti statues'),
-        (SELECT id FROM location_table WHERE location_institute_name = 'Galleria dell Accademia'),
-        'Statue of David',
-        '3 days'::INTERVAL
-       );
-
-
--- Update the exemplar entry for "Statue of David" to assign it to the exhibition
-UPDATE exemplar
-SET id_exposition = (
-    SELECT id
-    FROM exposition
-    WHERE name = 'Mona Lisa Exhibition'
-)
-WHERE name = 'Statue of David';
-
--- create an exemplar
-INSERT INTO exemplar (id_condition, id_owner, id_category, id_location, name, validation_time)
-VALUES (
-        (SELECT id FROM condition_table WHERE current_condition = 'Perfect' AND description = 'Velmi dobre to je'),
-        (SELECT id FROM owner_table WHERE owner_name = 'Musée du Louvre'),
-        (SELECT id FROM category_table WHERE category_name = 'Leonardo da Vinci Paintings'),
-        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
-        'The Virgin of the Rocks',
-        '1 days'::INTERVAL
-       );
-
--- Insert a transit record and capture its ID
-WITH inserted_row AS (
-    INSERT INTO transit_table (id_location, delivery_timestamp)
-    VALUES (
-        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
-        CURRENT_TIMESTAMP + INTERVAL '2 days'
-    )
-    RETURNING id
-)
-UPDATE exemplar
-SET id_transit = (
-    SELECT id
-    FROM inserted_row
-)
-WHERE name = 'The Virgin of the Rocks';
-
--- Update the exemplar entry for "Statue of David" to assign it to the exhibition
-UPDATE exemplar
-SET id_exposition = (
-    SELECT id
-    FROM exposition
-    WHERE name = 'Mona Lisa Exhibition'
-)
-WHERE name = 'The Virgin of the Rocks';
-
--- try to add exposition to the same room before previous exposition ended
--- create an exposition
-INSERT INTO exposition (name, start_date, end_date, current_state)
-VALUES ('Another exposition', NOW(), NOW() + INTERVAL '2 days', 'Active');
-
--- try to assign room to an exposition, which has a start date during an on-going exposition
-UPDATE room
-SET id_exposition = (
-    SELECT id
-    FROM exposition
-    WHERE name = 'Another exposition'
-)
-WHERE name = 'Salle des États';
-
--- change the exposition start date after the end date of the ongoing exposition
-UPDATE exposition
-SET start_date = NOW() + INTERVAL '100 years 2 days'
-WHERE name = 'Another exposition';
-
--- the room can now be assigned to that room
-UPDATE room
-SET id_exposition = (
-    SELECT id
-    FROM exposition
-    WHERE name = 'Another exposition'
-)
-WHERE name = 'Salle des États';

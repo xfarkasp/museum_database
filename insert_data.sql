@@ -29,7 +29,6 @@ VALUES
     ((SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'), 'Salle des États'),
     ((SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'), 'Salle des Caryatides'),
     ((SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'), 'Salle des Sept-Cheminées');
-
 -- Insert rooms for Galleria dell Accademia
 INSERT INTO room (id_museum, name)
 VALUES
