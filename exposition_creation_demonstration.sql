@@ -124,3 +124,39 @@ SET id_exposition = (
     WHERE name = 'Mona Lisa Exhibition'
 )
 WHERE name = 'Statue of David';
+
+-- create an exemplar
+INSERT INTO exemplar (id_condition, id_owner, id_category, id_location, name, validation_time)
+VALUES (
+        (SELECT id FROM condition_table WHERE current_condition = 'Perfect' AND description = 'Velmi dobre to je'),
+        (SELECT id FROM owner_table WHERE owner_name = 'Musée du Louvre'),
+        (SELECT id FROM category_table WHERE category_name = 'Leonardo da Vinci Paintings'),
+        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
+        'The Virgin of the Rocks',
+        '1 days'::INTERVAL
+       );
+
+-- Insert a transit record and capture its ID
+WITH inserted_row AS (
+    INSERT INTO transit_table (id_location, delivery_timestamp)
+    VALUES (
+        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
+        CURRENT_TIMESTAMP + INTERVAL '2 days'
+    )
+    RETURNING id
+)
+UPDATE exemplar
+SET id_transit = (
+    SELECT id
+    FROM inserted_row
+)
+WHERE name = 'The Virgin of the Rocks';
+
+-- Update the exemplar entry for "Statue of David" to assign it to the exhibition
+UPDATE exemplar
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Mona Lisa Exhibition'
+)
+WHERE name = 'The Virgin of the Rocks';

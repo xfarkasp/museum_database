@@ -69,17 +69,17 @@ CREATE TABLE exemplar (
     id_category INT NOT NULL REFERENCES category_table(id),
     id_location INT NOT NULL REFERENCES location_table(id),
     id_transit INT REFERENCES transit_table(id),
-    id_exposition INT REFERENCES exposition(id) CHECK (id_transit IS NULL),
+    id_exposition INT REFERENCES exposition(id),
     name varchar(256) NOT NULL,
     validation_time INTERVAL NOT NULL,
-    borrowed_until TIMESTAMP,
-    CONSTRAINT fk_exemplar_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
-    CONSTRAINT fk_exemplar_owner FOREIGN KEY (id_owner) REFERENCES owner_table(id),
-    CONSTRAINT fk_exemplar_category FOREIGN KEY (id_category) REFERENCES category_table(id),
-    CONSTRAINT fk_exemplar_location FOREIGN KEY (id_location) REFERENCES location_table(id),
-    CONSTRAINT fk_exemplar_transit FOREIGN KEY (id_transit) REFERENCES transit_table(id),
-    CONSTRAINT fk_exemplar_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id),
-    CONSTRAINT check_transit_and_exposition CHECK (id_transit IS NULL OR id_exposition IS NULL)
+    borrowed_until TIMESTAMP
+--     CONSTRAINT fk_exemplar_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
+--     CONSTRAINT fk_exemplar_owner FOREIGN KEY (id_owner) REFERENCES owner_table(id),
+--     CONSTRAINT fk_exemplar_category FOREIGN KEY (id_category) REFERENCES category_table(id),
+--     CONSTRAINT fk_exemplar_location FOREIGN KEY (id_location) REFERENCES location_table(id),
+--     CONSTRAINT fk_exemplar_transit FOREIGN KEY (id_transit) REFERENCES transit_table(id),
+--     CONSTRAINT fk_exemplar_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id),
+--     CONSTRAINT check_transit_and_exposition CHECK (id_transit IS NULL OR id_exposition IS NULL)
 );
 
 CREATE TABLE exposition_history (
