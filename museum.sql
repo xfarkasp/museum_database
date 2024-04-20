@@ -15,7 +15,7 @@ DROP TABLE IF EXISTS lent_table CASCADE;
 CREATE TABLE condition_table (
     id serial NOT NULL PRIMARY KEY,
     current_condition condition NOT NULL CHECK (current_condition IN ('Perfect', 'Commendable', 'Good', 'Sufficient', 'Insufficient')),
-    description TEXT NOT NULL
+    description TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE owner_table (
@@ -52,14 +52,14 @@ CREATE TABLE exposition (
     name varchar(256) NOT NULL UNIQUE,
     start_date TIMESTAMP NOT NULL CHECK (start_date >= CURRENT_TIMESTAMP),
     end_date TIMESTAMP NOT NULL CHECK (end_date > CURRENT_TIMESTAMP),
-    current_state state NOT NULL
+    current_state state NOT NULL DEFAULT 'Planed'
 );
 
 CREATE TABLE room (
     id serial NOT NULL PRIMARY KEY,
     id_museum INT NOT NULL REFERENCES location_table(id),
     id_exposition INT REFERENCES exposition(id),
-    name varchar(256) NOT NULL
+    name varchar(256) NOT NULL UNIQUE
 );
 
 CREATE TABLE exemplar (
@@ -70,16 +70,17 @@ CREATE TABLE exemplar (
     id_location INT NOT NULL REFERENCES location_table(id),
     id_transit INT REFERENCES transit_table(id),
     id_exposition INT REFERENCES exposition(id),
+    id_room INT REFERENCES room(id),
     name varchar(256) NOT NULL,
     validation_time INTERVAL NOT NULL,
-    borrowed_until TIMESTAMP
---     CONSTRAINT fk_exemplar_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
---     CONSTRAINT fk_exemplar_owner FOREIGN KEY (id_owner) REFERENCES owner_table(id),
---     CONSTRAINT fk_exemplar_category FOREIGN KEY (id_category) REFERENCES category_table(id),
---     CONSTRAINT fk_exemplar_location FOREIGN KEY (id_location) REFERENCES location_table(id),
---     CONSTRAINT fk_exemplar_transit FOREIGN KEY (id_transit) REFERENCES transit_table(id),
---     CONSTRAINT fk_exemplar_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id),
---     CONSTRAINT check_transit_and_exposition CHECK (id_transit IS NULL OR id_exposition IS NULL)
+    borrowed_until TIMESTAMP,
+    CONSTRAINT fk_exemplar_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
+    CONSTRAINT fk_exemplar_owner FOREIGN KEY (id_owner) REFERENCES owner_table(id),
+    CONSTRAINT fk_exemplar_category FOREIGN KEY (id_category) REFERENCES category_table(id),
+    CONSTRAINT fk_exemplar_location FOREIGN KEY (id_location) REFERENCES location_table(id),
+    CONSTRAINT fk_exemplar_transit FOREIGN KEY (id_transit) REFERENCES transit_table(id),
+    CONSTRAINT fk_exemplar_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id),
+    CONSTRAINT check_transit_and_exposition CHECK (id_transit IS NULL OR id_exposition IS NULL)
 );
 
 CREATE TABLE exposition_history (
