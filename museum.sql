@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS validation_history CASCADE;
 DROP TABLE IF EXISTS lent_table CASCADE;
 
 --create type validation_state as enum ('Not_validated', 'Validating', 'Validated');
+create type lent_type as enum ('Borrowed', 'Lent');
 
 -- Create tables
 CREATE TABLE condition_table (
@@ -107,5 +108,7 @@ CREATE TABLE validation_history (
 
 CREATE TABLE lent_table (
     id serial NOT NULL PRIMARY KEY,
-    id_museum INT REFERENCES location_table(id)
+    id_museum INT REFERENCES location_table(id) UNIQUE,
+    id_exemplar INT REFERENCES exemplar(id) UNIQUE,
+    type lent_type NOT NULL
 );
