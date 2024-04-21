@@ -23,6 +23,12 @@ VALUES (
     (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
     'The Coronation of Napoleon',
     '1 days'::INTERVAL
-)
+);
+
+UPDATE exemplar
+SET id_exposition = null
+WHERE name = 'The Coronation of Napoleon';
+
+
 
 -- call first query again to demonstrate that the new exemplar has been added

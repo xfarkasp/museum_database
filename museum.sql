@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS category_table CASCADE;
 DROP TABLE IF EXISTS owner_table CASCADE;
 DROP TABLE IF EXISTS condition_table CASCADE;
 DROP TABLE IF EXISTS validation_history CASCADE;
+DROP TABLE IF EXISTS exemplar_exposition_history CASCADE;
 DROP TABLE IF EXISTS lent_table CASCADE;
 
 --create type validation_state as enum ('Not_validated', 'Validating', 'Validated');
@@ -91,11 +92,15 @@ CREATE TABLE exemplar (
 CREATE TABLE exposition_history (
     id serial NOT NULL PRIMARY KEY,
     id_exposition INT REFERENCES exposition(id),
-    id_exemplar INT REFERENCES exemplar(id),
-    CONSTRAINT check_exposition_exemplar CHECK (
-        (id_exposition IS NOT NULL AND id_exemplar IS NULL) OR
-        (id_exposition IS NULL AND id_exemplar IS NOT NULL)
-    )
+    id_exemplar INT REFERENCES exemplar(id)
+);
+
+-- Create a history table to track changes in exemplar-exposition association
+CREATE TABLE exemplar_exposition_history (
+    id serial PRIMARY KEY,
+    id_exemplar INT,
+    id_exposition INT NOT NULL ,
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE validation_history (

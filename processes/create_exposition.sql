@@ -120,6 +120,29 @@ SET id_exposition = (
 )
 WHERE name = 'Salle des États';
 
+
+-- show expositions
+SELECT *
+FROM exposition;
+
+SELECT * FROM exemplar_exposition_history;
+
+SELECT eeh.*
+FROM exemplar_exposition_history eeh
+JOIN exposition ex ON eeh.id_exposition = ex.id
+WHERE ex.name = 'Mona Lisa Exhibition';
+
+-- when exemplar exposition id is changed, the exemplar id with associated exposition id is saved to
+-- exemplar_exposition_history for history tracking
+UPDATE exemplar
+SET id_exposition = null
+WHERE name = 'Hercules Statue';
+
+UPDATE exemplar
+SET id_exposition = null
+WHERE name = 'Mona Lisa';
+
+-- only exemplars which are part of the exhibition
 SELECT
     e.id AS exemplar_id,
     e.name AS exemplar_name,
@@ -154,5 +177,39 @@ LEFT JOIN
 WHERE
     ex.name = 'Mona Lisa Exhibition';
 
-SELECT *
-FROM exposition;
+-- all of the exemplars which were and are the part of the given exposition
+SELECT
+    exh.id_exemplar AS exemplar_id,
+    e.name AS exemplar_name,
+    e.validation_time AS exemplar_validation_time,
+    c.category_name,
+    co.current_condition,
+    o.owner_name,
+    l.location_institute_name,
+    l.street_address,
+    l.city,
+    l.postal_code,
+    l.country,
+    ex.name AS exhibition_name,
+    ex.current_state,
+    r.name AS room_name,
+    ex.start_date AS exhibition_start_date,
+    ex.end_date AS exhibition_end_date
+FROM
+    exemplar_exposition_history exh
+LEFT JOIN
+    exemplar e ON exh.id_exemplar = e.id
+LEFT JOIN
+    condition_table co ON e.id_condition = co.id
+LEFT JOIN
+    owner_table o ON e.id_owner = o.id
+LEFT JOIN
+    category_table c ON e.id_category = c.id
+LEFT JOIN
+    location_table l ON e.id_location = l.id
+LEFT JOIN
+    exposition ex ON exh.id_exposition = ex.id
+LEFT JOIN
+    room r ON r.id = e.id_room
+WHERE
+    ex.name = 'Mona Lisa Exhibition';
