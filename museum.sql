@@ -11,6 +11,8 @@ DROP TABLE IF EXISTS condition_table CASCADE;
 DROP TABLE IF EXISTS validation_history CASCADE;
 DROP TABLE IF EXISTS lent_table CASCADE;
 
+--create type validation_state as enum ('Not_validated', 'Validating', 'Validated');
+
 -- Create tables
 CREATE TABLE condition_table (
     id serial NOT NULL PRIMARY KEY,
@@ -51,7 +53,7 @@ CREATE TABLE exposition (
     id serial NOT NULL PRIMARY KEY,
     name varchar(256) NOT NULL UNIQUE,
     start_date TIMESTAMP NOT NULL CHECK (start_date >= CURRENT_TIMESTAMP),
-    end_date TIMESTAMP NOT NULL CHECK (end_date > CURRENT_TIMESTAMP),
+    end_date TIMESTAMP NOT NULL CHECK (end_date >= CURRENT_TIMESTAMP),
     current_state state NOT NULL DEFAULT 'Planed'
 );
 
@@ -61,6 +63,7 @@ CREATE TABLE room (
     id_exposition INT REFERENCES exposition(id),
     name varchar(256) NOT NULL UNIQUE
 );
+
 
 CREATE TABLE exemplar (
     id serial NOT NULL PRIMARY KEY,
@@ -74,6 +77,7 @@ CREATE TABLE exemplar (
     name varchar(256) NOT NULL,
     validation_time INTERVAL NOT NULL,
     borrowed_until TIMESTAMP,
+    validation validation_state NOT NULL DEFAULT 'Validated',
     CONSTRAINT fk_exemplar_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
     CONSTRAINT fk_exemplar_owner FOREIGN KEY (id_owner) REFERENCES owner_table(id),
     CONSTRAINT fk_exemplar_category FOREIGN KEY (id_category) REFERENCES category_table(id),
@@ -96,6 +100,7 @@ CREATE TABLE exposition_history (
 CREATE TABLE validation_history (
     id serial NOT NULL PRIMARY KEY,
     id_condition INT REFERENCES condition_table(id),
+    id_exemplar INT REFERENCES exemplar(id),
     date TIMESTAMP NOT NULL,
     duration TIMESTAMP NOT NULL
 );
