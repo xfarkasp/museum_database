@@ -21,6 +21,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER prevent_exposition_invalid
-BEFORE INSERT OR UPDATE ON room
+BEFORE INSERT OR UPDATE of id_exposition ON  room
 FOR EACH ROW
 EXECUTE FUNCTION check_exposition_validity();

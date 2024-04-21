@@ -15,6 +15,6 @@ $$ LANGUAGE plpgsql;
 
 -- Create a trigger to enforce the check on room museum before updating exemplar
 CREATE TRIGGER prevent_room_museum_mismatch
-BEFORE UPDATE ON exemplar
+BEFORE UPDATE OF id_room ON exemplar
 FOR EACH ROW
 EXECUTE FUNCTION check_exemplar_room_museum();

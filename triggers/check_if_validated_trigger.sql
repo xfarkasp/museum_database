@@ -32,10 +32,3 @@ CREATE TRIGGER validate_delivery_trigger
 BEFORE INSERT ON validation_history
 FOR EACH ROW
 EXECUTE FUNCTION validate_delivery_time();
-
--- -- Create a trigger to enforce validation of estimated delivery time when updating exemplar exposition ID
--- CREATE TRIGGER validate_delivery_exemplar_update_trigger
--- BEFORE UPDATE ON exemplar
--- FOR EACH ROW
--- --WHEN (NEW.id_exposition <> OLD.id_exposition) -- Only trigger if id_exposition is changed
--- EXECUTE FUNCTION validate_delivery_time();

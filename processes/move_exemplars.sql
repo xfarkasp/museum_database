@@ -15,6 +15,14 @@ SET id_room = (
 )
 WHERE name = 'Mona Lisa';
 
+UPDATE exemplar
+SET id_room = (
+    SELECT room.id
+    FROM room
+    WHERE room.name = 'Salle des Sept-Cheminées'
+)
+WHERE name = 'Mona Lisa';
+
 -- try to move the Mona Lisa to Sala di Dante which is not located at the Louvre
 -- this will fail, because the trigger which checks if room location is the same as the exemplar location
 UPDATE exemplar

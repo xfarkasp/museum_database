@@ -10,6 +10,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER exposition_active_trigger
-BEFORE INSERT OR UPDATE ON exposition
+BEFORE INSERT OR UPDATE of start_date ON exposition
 FOR EACH ROW
 EXECUTE FUNCTION set_exposition_active();

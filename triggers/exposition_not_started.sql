@@ -11,6 +11,6 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger to activate when a new exposition is inserted or updated
 CREATE TRIGGER exposition_planed_trigger
-BEFORE INSERT OR UPDATE ON exposition
+BEFORE INSERT OR UPDATE OF start_date ON exposition
 FOR EACH ROW
 EXECUTE FUNCTION set_exposition_planed();

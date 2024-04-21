@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS owner_table CASCADE;
 DROP TABLE IF EXISTS condition_table CASCADE;
 DROP TABLE IF EXISTS validation_history CASCADE;
 DROP TABLE IF EXISTS exemplar_exposition_history CASCADE;
+DROP TABLE IF EXISTS room_exposition_history CASCADE;
 DROP TABLE IF EXISTS lent_table CASCADE;
 
 --create type validation_state as enum ('Not_validated', 'Validating', 'Validated');
@@ -100,6 +101,14 @@ CREATE TABLE exemplar_exposition_history (
     id serial PRIMARY KEY,
     id_exemplar INT,
     id_exposition INT NOT NULL ,
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the room exposition history table
+CREATE TABLE room_exposition_history (
+    id serial PRIMARY KEY,
+    id_room INT,
+    id_exposition INT NOT NULL,
     change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

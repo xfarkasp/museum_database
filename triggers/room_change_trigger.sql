@@ -10,6 +10,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_exemplar_exposition_id
-BEFORE UPDATE ON exemplar
+BEFORE UPDATE OF id_room ON exemplar
 FOR EACH ROW
 EXECUTE FUNCTION set_exemplar_exposition_id();

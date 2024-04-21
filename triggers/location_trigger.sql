@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION check_exemplar_exposition()
+CREATE OR REPLACE FUNCTION check_exemplar_exposition_location()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.id_transit IS NULL THEN
@@ -19,6 +19,6 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER prevent_exemplar_exposition_change
-BEFORE UPDATE ON exemplar
+BEFORE UPDATE of id_exposition ON exemplar
 FOR EACH ROW
-EXECUTE FUNCTION check_exemplar_exposition();
+EXECUTE FUNCTION check_exemplar_exposition_location();

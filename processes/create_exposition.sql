@@ -1,4 +1,4 @@
--- create an exhibition
+-- create an exhibition called mona lisa
 INSERT INTO exposition (name, start_date, end_date, current_state)
 VALUES ('Mona Lisa Exhibition', NOW(), NOW() + INTERVAL '100 years', 'Active');
 
@@ -108,7 +108,7 @@ WHERE name = 'Another exposition';
 
 -- change the exposition start date after the end date of the ongoing exposition
 UPDATE exposition
-SET end_date = NOW() + INTERVAL '100 years 3 days'
+SET start_date = NOW() + INTERVAL '100 years 3 days'
 WHERE name = 'Another exposition';
 
 -- the room can now be assigned to that room
@@ -120,6 +120,7 @@ SET id_exposition = (
 )
 WHERE name = 'Salle des États';
 
+SELECT * FROM room_exposition_history;
 
 -- show expositions
 SELECT *
@@ -213,3 +214,77 @@ LEFT JOIN
     room r ON r.id = e.id_room
 WHERE
     ex.name = 'Mona Lisa Exhibition';
+
+SELECT
+    ex.name AS exhibition_name,
+    r.name
+
+
+FROM exposition ex
+LEFT JOIN
+    room r ON r.id_exposition = ex.id;
+
+
+SELECT
+    exh.id_room AS room_id,
+    r.name AS room_name,
+    ex.name AS exhibition_name,
+    ex.start_date AS exhibition_start_date,
+    ex.end_date AS exhibition_end_date
+FROM
+    room_exposition_history exh
+LEFT JOIN
+    room r ON exh.id_room = r.id
+LEFT JOIN
+    location_table l ON r.id_museum = l.id
+LEFT JOIN
+    exposition ex ON exh.id_exposition = ex.id
+WHERE
+    ex.name = 'Mona Lisa Exhibition'
+UNION ALL
+SELECT
+    r.id AS room_id,
+    r.name AS room_name,
+    ex.name AS exhibition_name,
+    ex.start_date AS exhibition_start_date,
+    ex.end_date AS exhibition_end_date
+FROM
+    room r
+LEFT JOIN
+    location_table l ON r.id_museum = l.id
+LEFT JOIN
+    exposition ex ON r.id_exposition = ex.id
+WHERE
+    ex.name = 'Mona Lisa Exhibition';
+
+SELECT
+    exh.id_room AS room_id,
+    r.name AS room_name,
+    ex.name AS exhibition_name,
+    ex.start_date AS exhibition_start_date,
+    ex.end_date AS exhibition_end_date
+FROM
+    room_exposition_history exh
+LEFT JOIN
+    room r ON exh.id_room = r.id
+LEFT JOIN
+    location_table l ON r.id_museum = l.id
+LEFT JOIN
+    exposition ex ON exh.id_exposition = ex.id
+WHERE
+    ex.name = 'Another exposition'
+UNION ALL
+SELECT
+    r.id AS room_id,
+    r.name AS room_name,
+    ex.name AS exhibition_name,
+    ex.start_date AS exhibition_start_date,
+    ex.end_date AS exhibition_end_date
+FROM
+    room r
+LEFT JOIN
+    location_table l ON r.id_museum = l.id
+LEFT JOIN
+    exposition ex ON r.id_exposition = ex.id
+WHERE
+    ex.name = 'Another exposition';
