@@ -50,17 +50,8 @@ SET id_exposition = (
 )
 WHERE name = 'The Statue of David';
 
--- create an exemplar The Virgin of the Rocks and we put it in to transit to be send to another museum
+-- put Winged Victory of Samothrace   in to transit to be send to another museum
 -- this wont work, because the exemplar is being sent away
-INSERT INTO exemplar (id_condition, id_owner, id_category, id_location, name, validation_time)
-VALUES (
-        (SELECT id FROM condition_table WHERE current_condition = 'Perfect' AND description = 'The exemplar is in perfect condition.'),
-        (SELECT id FROM owner_table WHERE owner_name = 'Musée du Louvre'),
-        (SELECT id FROM category_table WHERE category_name = 'Paintings'),
-        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
-        'The Virgin of the Rocks',
-        '1 days'::INTERVAL
-       );
 
 -- Insert a transit record and capture its ID
 WITH inserted_row AS (
@@ -76,7 +67,7 @@ SET id_transit = (
     SELECT id
     FROM inserted_row
 )
-WHERE name = 'The Virgin of the Rocks';
+WHERE name = 'Winged Victory of Samothrace';
 
 -- Now we try to assign the the exemplar to the exhibition
 UPDATE exemplar
@@ -85,10 +76,11 @@ SET id_exposition = (
     FROM exposition
     WHERE name = 'Mona Lisa Exhibition'
 )
-WHERE name = 'The Virgin of the Rocks';
+WHERE name = 'Winged Victory of Samothrace';
 
 -- try to add exposition to the same room before previous exposition ended
 -- this wont work, because only 1 exposition can be active in the same zone/room
+-- create a new exposition
 INSERT INTO exposition (name, start_date, end_date, current_state)
 VALUES ('Another exposition', NOW(), NOW() + INTERVAL '2 days', 'Planed');
 
@@ -100,11 +92,6 @@ SET id_exposition = (
     WHERE name = 'Another exposition'
 )
 WHERE name = 'Salle des États';
-
--- change the exposition start date after the end date of the ongoing exposition
-UPDATE exposition
-SET start_date = NOW() --+ INTERVAL '100 years 2 days'
-WHERE name = 'Another exposition';
 
 -- change the exposition start date after the end date of the ongoing exposition
 UPDATE exposition
@@ -120,28 +107,7 @@ SET id_exposition = (
 )
 WHERE name = 'Salle des États';
 
-SELECT * FROM room_exposition_history;
 
--- show expositions
-SELECT *
-FROM exposition;
-
-SELECT * FROM exemplar_exposition_history;
-
-SELECT eeh.*
-FROM exemplar_exposition_history eeh
-JOIN exposition ex ON eeh.id_exposition = ex.id
-WHERE ex.name = 'Mona Lisa Exhibition';
-
--- when exemplar exposition id is changed, the exemplar id with associated exposition id is saved to
--- exemplar_exposition_history for history tracking
-UPDATE exemplar
-SET id_exposition = null
-WHERE name = 'Hercules Statue';
-
-UPDATE exemplar
-SET id_exposition = null
-WHERE name = 'Mona Lisa';
 
 -- only exemplars which are part of the exhibition
 SELECT
@@ -177,6 +143,16 @@ LEFT JOIN
     room r ON r.id = e.id_room
 WHERE
     ex.name = 'Mona Lisa Exhibition';
+
+-- when exemplar exposition id is changed, the exemplar id with associated exposition id is saved to
+-- exemplar_exposition_history for history tracking
+UPDATE exemplar
+SET id_exposition = null
+WHERE name = 'Hercules Statue';
+
+UPDATE exemplar
+SET id_exposition = null
+WHERE name = 'Mona Lisa';
 
 -- all of the exemplars which were and are the part of the given exposition
 SELECT
@@ -215,16 +191,9 @@ LEFT JOIN
 WHERE
     ex.name = 'Mona Lisa Exhibition';
 
-SELECT
-    ex.name AS exhibition_name,
-    r.name
 
 
-FROM exposition ex
-LEFT JOIN
-    room r ON r.id_exposition = ex.id;
-
-
+-- show all the room which are the part of Mona Lisa Exhibition with time stamps
 SELECT
     exh.id_room AS room_id,
     r.name AS room_name,
@@ -239,41 +208,10 @@ LEFT JOIN
     location_table l ON r.id_museum = l.id
 LEFT JOIN
     exposition ex ON exh.id_exposition = ex.id
-WHERE
-    ex.name = 'Mona Lisa Exhibition'
-UNION ALL
-SELECT
-    r.id AS room_id,
-    r.name AS room_name,
-    ex.name AS exhibition_name,
-    ex.start_date AS exhibition_start_date,
-    ex.end_date AS exhibition_end_date
-FROM
-    room r
-LEFT JOIN
-    location_table l ON r.id_museum = l.id
-LEFT JOIN
-    exposition ex ON r.id_exposition = ex.id
 WHERE
     ex.name = 'Mona Lisa Exhibition';
 
-SELECT
-    exh.id_room AS room_id,
-    r.name AS room_name,
-    ex.name AS exhibition_name,
-    ex.start_date AS exhibition_start_date,
-    ex.end_date AS exhibition_end_date
-FROM
-    room_exposition_history exh
-LEFT JOIN
-    room r ON exh.id_room = r.id
-LEFT JOIN
-    location_table l ON r.id_museum = l.id
-LEFT JOIN
-    exposition ex ON exh.id_exposition = ex.id
-WHERE
-    ex.name = 'Another exposition'
-UNION ALL
+-- all rooms which are part of Another exposition
 SELECT
     r.id AS room_id,
     r.name AS room_name,
@@ -288,3 +226,4 @@ LEFT JOIN
     exposition ex ON r.id_exposition = ex.id
 WHERE
     ex.name = 'Another exposition';
+

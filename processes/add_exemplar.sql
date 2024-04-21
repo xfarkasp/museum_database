@@ -25,10 +25,4 @@ VALUES (
     '1 days'::INTERVAL
 );
 
-UPDATE exemplar
-SET id_exposition = null
-WHERE name = 'The Coronation of Napoleon';
-
-
-
 -- call first query again to demonstrate that the new exemplar has been added

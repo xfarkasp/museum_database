@@ -1,5 +1,4 @@
 -- Drop tables if they exist
-DROP TABLE IF EXISTS exposition_history CASCADE;
 DROP TABLE IF EXISTS exemplar CASCADE;
 DROP TABLE IF EXISTS transit_table CASCADE;
 DROP TABLE IF EXISTS location_table CASCADE;
@@ -90,18 +89,13 @@ CREATE TABLE exemplar (
     CONSTRAINT check_transit_and_exposition CHECK (id_transit IS NULL OR id_exposition IS NULL)
 );
 
-CREATE TABLE exposition_history (
-    id serial NOT NULL PRIMARY KEY,
-    id_exposition INT REFERENCES exposition(id),
-    id_exemplar INT REFERENCES exemplar(id)
-);
-
 -- Create a history table to track changes in exemplar-exposition association
 CREATE TABLE exemplar_exposition_history (
     id serial PRIMARY KEY,
     id_exemplar INT,
     id_exposition INT NOT NULL ,
-    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_exposition_history UNIQUE (id_exemplar, id_exposition)
 );
 
 -- Create the room exposition history table
@@ -109,7 +103,8 @@ CREATE TABLE room_exposition_history (
     id serial PRIMARY KEY,
     id_room INT,
     id_exposition INT NOT NULL,
-    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_room_exposition_history UNIQUE (id_room, id_exposition)
 );
 
 CREATE TABLE validation_history (

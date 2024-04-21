@@ -58,7 +58,7 @@ UPDATE transit_table
 SET delivery_timestamp = CURRENT_TIMESTAMP - INTERVAL '5 days' -- Change delivery time here
 WHERE id = 1;
 
--- lets try to add entry to validation History, it wont work, because the estimated delivery and validation time has not passed yet
+-- now it will work
 INSERT INTO validation_history (id_condition, id_exemplar, date, duration)
 VALUES (
     (SELECT id FROM condition_table WHERE current_condition = 'Good' AND description = 'Validation after transfer from Palazzo Vecchio'),
