@@ -1,6 +1,7 @@
 CREATE OR REPLACE FUNCTION check_transit_not_null()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- check if exemplar is in transit
     IF NEW.id_transit IS NOT NULL THEN
         RAISE EXCEPTION 'Exemplar has not been delivered and validated yet!';
     END IF;

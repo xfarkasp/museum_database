@@ -17,7 +17,7 @@ BEGIN
         SELECT id_transit INTO transit_location_id
         FROM exemplar
         WHERE id = NEW.id_exemplar;
-
+        -- if time passed, set transit id of exemplar to null and set location to new museum
         UPDATE exemplar SET id_transit = NULL, id_location = transit_location_id WHERE id = NEW.id_exemplar;
 
         RETURN NEW; -- Allow insertion

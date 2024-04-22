@@ -15,13 +15,6 @@ BEGIN
         -- Set validation state to 'Not_validated'
         NEW.validation := 'Not_validated';
 
---         -- Calculate estimated delivery time by adding validation time to delivery timestamp
---         estimated_delivery_time := transit_record.delivery_timestamp + NEW.validation_time;
---
---         -- Update delivery timestamp in the transit record
---         UPDATE transit_table
---         SET delivery_timestamp = estimated_delivery_time
---         WHERE id = NEW.id_transit;
     END IF;
 
     RETURN NEW;

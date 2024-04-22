@@ -35,7 +35,7 @@ SET id_room = (
     SELECT room.id
     FROM room
     JOIN exposition ON room.id_exposition = exposition.id
-    WHERE room.name = 'Salle des Sept-Cheminées'
+    WHERE room.name = 'Salle des Caryatides'
     AND exposition.name = 'Mona Lisa Exhibition'
 )
 WHERE name = 'Hercules Statue';
@@ -54,6 +54,23 @@ WHERE name = 'The Statue of David';
 -- this wont work, because the exemplar is being sent away
 
 -- Insert a transit record and capture its ID
+-- Mona Lisa can not be added to the transit, because an exemplar can not be transported when part of exemplar
+WITH inserted_row AS (
+    INSERT INTO transit_table (id_location, delivery_timestamp)
+    VALUES (
+        (SELECT id FROM location_table WHERE location_institute_name = 'Musée du Louvre'),
+        CURRENT_TIMESTAMP + INTERVAL '2 days'
+    )
+    RETURNING id
+)
+UPDATE exemplar
+SET id_transit = (
+    SELECT id
+    FROM inserted_row
+)
+WHERE name = 'Mona Lisa';
+
+-- lets add to transit Winged Victory of Samothrace
 WITH inserted_row AS (
     INSERT INTO transit_table (id_location, delivery_timestamp)
     VALUES (
@@ -107,9 +124,7 @@ SET id_exposition = (
 )
 WHERE name = 'Salle des États';
 
-
-
--- only exemplars which are part of the exhibition
+-- only exemplars which are part of the exhibition at the current time
 SELECT
     e.id AS exemplar_id,
     e.name AS exemplar_name,
@@ -146,6 +161,7 @@ WHERE
 
 -- when exemplar exposition id is changed, the exemplar id with associated exposition id is saved to
 -- exemplar_exposition_history for history tracking
+-- lets remove exemplar Mona Lisa and Hercules Statue from Mona Lisa Exhibition do demonstrate history function
 UPDATE exemplar
 SET id_exposition = null
 WHERE name = 'Hercules Statue';
@@ -191,8 +207,6 @@ LEFT JOIN
 WHERE
     ex.name = 'Mona Lisa Exhibition';
 
-
-
 -- show all the room which are the part of Mona Lisa Exhibition with time stamps
 SELECT
     exh.id_room AS room_id,
@@ -211,19 +225,20 @@ LEFT JOIN
 WHERE
     ex.name = 'Mona Lisa Exhibition';
 
--- all rooms which are part of Another exposition
+-- show all the room which are the part of Mona Lisa Exhibition with time stamps
 SELECT
-    r.id AS room_id,
+    exh.id_room AS room_id,
     r.name AS room_name,
     ex.name AS exhibition_name,
     ex.start_date AS exhibition_start_date,
     ex.end_date AS exhibition_end_date
 FROM
-    room r
+    room_exposition_history exh
+LEFT JOIN
+    room r ON exh.id_room = r.id
 LEFT JOIN
     location_table l ON r.id_museum = l.id
 LEFT JOIN
-    exposition ex ON r.id_exposition = ex.id
+    exposition ex ON exh.id_exposition = ex.id
 WHERE
     ex.name = 'Another exposition';
-

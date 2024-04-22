@@ -6,6 +6,8 @@ VALUES (
     'Borrowed'
 );
 
+
+-- Set borrowed until timestamp
 UPDATE exemplar
 SET borrowed_until = CURRENT_TIMESTAMP + INTERVAL '1 days'
 WHERE name = 'The Statue of David';
@@ -19,6 +21,7 @@ WITH inserted_row AS (
     )
     RETURNING id
 )
+-- Assign the transit to the exemplar
 UPDATE exemplar
 SET id_transit = (
     SELECT id
@@ -26,22 +29,25 @@ SET id_transit = (
 )
 WHERE name = 'The Statue of David';
 
+-- Create a new validation entry for the exemplar
 INSERT INTO condition_table (current_condition, description)
 VALUES (
     'Perfect',
     'Validation after delivery to Louvre from Italy'
 );
 
+-- Create a new exposition where we will be adding the new exemplar
 INSERT INTO exposition (name, start_date, end_date, current_state)
 VALUES ('Michelangelo exposition', NOW(), NOW() + INTERVAL '1 years', 'Active');
 
+-- assign a zone for the exemplar
 UPDATE room
 SET id_exposition = (
     SELECT id
     FROM exposition
     WHERE name = 'Michelangelo exposition'
 )
-WHERE name IN ('Salle des États');
+WHERE name IN ('Salle des Sept-Cheminées');
 
 -- Update the exemplar entry for "David" to assign it to the exhibition
 UPDATE exemplar
@@ -51,8 +57,6 @@ SET id_exposition = (
     WHERE name = 'Michelangelo exposition'
 )
 WHERE name IN ('The Statue of David');
-
-DELETE FROM transit_table WHERE id = 1;
 
 -- lets try to add entry to validation History, it wont work, because the estimated delivery and validation time has not passed yet
 INSERT INTO validation_history (id_condition, id_exemplar, date, duration)
@@ -66,7 +70,7 @@ VALUES (
 -- let's change the delivery interval to be a smaller number than value expected delivery + validation time
 UPDATE transit_table
 SET delivery_timestamp = CURRENT_TIMESTAMP - INTERVAL '5 days' -- Change delivery time here
-WHERE id = 1;
+WHERE id = (SELECT id_transit FROM exemplar WHERE name = 'The Statue of David');
 
 -- lets try again to add same entry to validation History, it will work now, because the estimated delivery and validation time has passed
 INSERT INTO validation_history (id_condition, id_exemplar, date, duration)
@@ -77,24 +81,40 @@ VALUES (
     CURRENT_TIMESTAMP + (SELECT validation_time FROM exemplar WHERE name = 'The Statue of David')
 );
 
+-- Now we have to add the exemplar to the lent table of the new museum with enu lent
+INSERT INTO lent_table(id_museum, id_exemplar, type)
+VALUES (
+    (SELECT id FROM location_table WHERE id IN (SELECT id_location FROM exemplar WHERE name = 'The Statue of David')),
+    (SELECT id FROM exemplar WHERE name = 'The Statue of David'),
+    'Lent'
+);
 
-SELECT *
-FROM exemplar
-LEFT JOIN location_table l on exemplar.id_location = l.id
-WHERE id_transit = 1;
+-- Lets try to update again the exemplar entry for "David" to assign it to the exhibition
+-- this wont work, because the duration of the exposition is longer than the borrowed time of the exposition
+UPDATE exemplar
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Michelangelo exposition'
+)
+WHERE name IN ('The Statue of David');
 
-SELECT *
-FROM exemplar
-LEFT JOIN location_table l on exemplar.id_location = l.id
+-- Prolong the exemplar borrowed time to fit with the exposition length
+UPDATE exemplar
+SET borrowed_until = CURRENT_TIMESTAMP + INTERVAL '1years 1 days'
 WHERE name = 'The Statue of David';
 
+-- now the addition will work
+UPDATE exemplar
+SET id_exposition = (
+    SELECT id
+    FROM exposition
+    WHERE name = 'Michelangelo exposition'
+)
+WHERE name IN ('The Statue of David');
 
-SELECT *
-FROM transit_table;
 
-SELECT *
-FROM validation_history;
-
+-- show exemplars from Michelangelo exposition
 SELECT
     e.id AS exemplar_id,
     e.name AS exemplar_name,
@@ -129,3 +149,13 @@ LEFT JOIN
     room r ON r.id = e.id_room
 WHERE
     ex.name = 'Michelangelo exposition';
+
+-- show lent table
+SELECT
+    e.name,
+    i.location_institute_name,
+    e.borrowed_until,
+    l.type
+FROM lent_table l
+JOIN exemplar e ON e.id = l.id_exemplar
+JOIN location_table i ON i.id = l.id_museum;

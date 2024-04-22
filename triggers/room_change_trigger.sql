@@ -3,6 +3,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.id_room IS NOT NULL THEN
         -- Fetch the exposition ID of the room
+        -- If exemplart room changed, set the exposition id of the room
         SELECT id_exposition INTO NEW.id_exposition FROM room WHERE id = NEW.id_room;
     END IF;
     RETURN NEW;

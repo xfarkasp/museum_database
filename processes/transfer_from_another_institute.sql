@@ -56,7 +56,7 @@ VALUES (
 -- let's change the delivery interval to be a smaller number than value expected delivery + validation time to simulate delivery
 UPDATE transit_table
 SET delivery_timestamp = CURRENT_TIMESTAMP - INTERVAL '5 days' -- Change delivery time here
-WHERE id = 1;
+WHERE id = (SELECT id_transit FROM exemplar WHERE name = 'Dante s Death Mask');
 
 -- now it will work
 INSERT INTO validation_history (id_condition, id_exemplar, date, duration)

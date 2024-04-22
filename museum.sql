@@ -48,7 +48,9 @@ CREATE TABLE location_table (
 CREATE TABLE transit_table (
     id serial NOT NULL PRIMARY KEY,
     id_location INT NOT NULL REFERENCES location_table(id),
-    delivery_timestamp TIMESTAMP NOT NULL
+    delivery_timestamp TIMESTAMP NOT NULL,
+     --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
+    CONSTRAINT fk_transit_location FOREIGN KEY (id_location) REFERENCES location_table(id)
 );
 
 CREATE TABLE exposition (
@@ -63,7 +65,10 @@ CREATE TABLE room (
     id serial NOT NULL PRIMARY KEY,
     id_museum INT NOT NULL REFERENCES location_table(id),
     id_exposition INT REFERENCES exposition(id),
-    name varchar(256) NOT NULL UNIQUE
+    name varchar(256) NOT NULL UNIQUE,
+    --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
+    CONSTRAINT fk_room_museum FOREIGN KEY (id_museum) REFERENCES location_table(id),
+    CONSTRAINT fk_room_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id)
 );
 
 
@@ -80,6 +85,7 @@ CREATE TABLE exemplar (
     validation_time INTERVAL NOT NULL,
     borrowed_until TIMESTAMP,
     validation validation_state NOT NULL DEFAULT 'Validated',
+    --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
     CONSTRAINT fk_exemplar_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
     CONSTRAINT fk_exemplar_owner FOREIGN KEY (id_owner) REFERENCES owner_table(id),
     CONSTRAINT fk_exemplar_category FOREIGN KEY (id_category) REFERENCES category_table(id),
@@ -95,7 +101,11 @@ CREATE TABLE exemplar_exposition_history (
     id_exemplar INT,
     id_exposition INT NOT NULL ,
     change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_exposition_history UNIQUE (id_exemplar, id_exposition)
+    -- preventing duplicate  entries
+    CONSTRAINT unique_exposition_history UNIQUE (id_exemplar, id_exposition),
+    --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
+    CONSTRAINT fk_exemplar_history_id_exemplar FOREIGN KEY (id_exemplar) REFERENCES exemplar(id),
+    CONSTRAINT fk_exemplar_history_id_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id)
 );
 
 -- Create the room exposition history table
@@ -104,7 +114,11 @@ CREATE TABLE room_exposition_history (
     id_room INT,
     id_exposition INT NOT NULL,
     change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_room_exposition_history UNIQUE (id_room, id_exposition)
+    -- preventing duplicate  entries
+    CONSTRAINT unique_room_exposition_history UNIQUE (id_room, id_exposition),
+    --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
+    CONSTRAINT fk_room_history_id_room FOREIGN KEY (id_room) REFERENCES room(id),
+    CONSTRAINT fk_room_history_id_exposition FOREIGN KEY (id_exposition) REFERENCES exposition(id)
 );
 
 CREATE TABLE validation_history (
@@ -112,12 +126,20 @@ CREATE TABLE validation_history (
     id_condition INT REFERENCES condition_table(id),
     id_exemplar INT REFERENCES exemplar(id),
     date TIMESTAMP NOT NULL,
-    duration TIMESTAMP NOT NULL
+    duration TIMESTAMP NOT NULL,
+    --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
+    CONSTRAINT fk_validation_history_condition FOREIGN KEY (id_condition) REFERENCES condition_table(id),
+    CONSTRAINT fk_validation_history_exemplar FOREIGN KEY (id_exemplar) REFERENCES exemplar(id)
 );
 
 CREATE TABLE lent_table (
     id serial NOT NULL PRIMARY KEY,
-    id_museum INT REFERENCES location_table(id) UNIQUE,
-    id_exemplar INT REFERENCES exemplar(id) UNIQUE,
-    type lent_type NOT NULL
+    id_museum INT REFERENCES location_table(id),
+    id_exemplar INT REFERENCES exemplar(id),
+    type lent_type NOT NULL,
+    --constraints ensures that the foreign key columns in the exemplar table references valid values from other tables
+    CONSTRAINT fk_lent_museum_id FOREIGN KEY (id_museum) REFERENCES location_table(id),
+    CONSTRAINT fk_lent_id_exemplar FOREIGN KEY (id_exemplar) REFERENCES exemplar(id),
+    -- ensure that uniqueness
+    CONSTRAINT unique_lent_entry UNIQUE (id_museum, id_exemplar, type)
 );
